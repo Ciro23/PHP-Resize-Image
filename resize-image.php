@@ -1,18 +1,34 @@
 <?php
-function resizeImage($source, $imageExt, $shape = false) {
 
-    if ($imageExt == "jpg" || $imageExt == "jpeg") {
-        $image = imagecreatefromjpeg($source);
+/*
+@param string $source image source path
+@param string|null $shape image final shape (square, horizontal, vertical)
+@return the image to create or false on failure
+*/
+function resizeImage($source, $shape = null) {
 
-    } else if ($imageExt == "png") {
-        $image = imagecreatefrompng($source);
+    // gets the image extension
+    $imageExt = explode(".", $source);
+    $imageExt = array_pop($imageExt);
 
+    switch($imageExt) {
+        case "jpg":
+        case "jpeg":
+            $image = imagecreatefromjpeg($source);
+            break;
+
+        case "png":
+            $image = imagecreatefrompng($source);
+            break;
+
+        default:
+            return false;
     }
 
     // size of the uploaded image
     $size = getimagesize($source);
 
-    $source = [];
+    $source = $size;
     $offset = [0, 0];
 
     if ($shape == "square") {
@@ -29,16 +45,12 @@ function resizeImage($source, $imageExt, $shape = false) {
 
             $source[1] = $size[0];
             $source[0] = $size[0];
-
-        } else {
-            $source[0] = $size[0];
-            $source[1] = $size[0];
         }
     } else if ($shape == "horizontal" || $shape == "vertical") {
 
         switch ($shape) {
             case "horizontal":
-                $newSize = [430, 242];
+                $newSize = [594, 427];
                 break;
 
             case "vertical":
@@ -46,41 +58,37 @@ function resizeImage($source, $imageExt, $shape = false) {
                 break;
         }
 
-        if ($size[0] / $size[1] > $newSize[0] / $newSize[1]) {         // if the image width is bigger than the image aspect ratio
-            $source[1] = $size[1];
+        if ($size[0] / $size[1] > $newSize[0] / $newSize[1]) {         // if the image width is higher than the given aspect ratio
             $source[0] = $size[1] * ($newSize[0] / $newSize[1]);
+            $source[1] = $size[1];
 
             $offset[0] = ($size[0] - $source[0]) / 2;
 
-        } else if ($size[0] / $size[1] < $newSize[0] / $newSize[1]) {  // if the image height is bigger than image aspect ratio
+        } else if ($size[0] / $size[1] < $newSize[0] / $newSize[1]) {  // if the image height is higher than the given aspect ratio
             $source[0] = $size[0];
             $source[1] = $size[0] / ($newSize[0] / $newSize[1]);
 
             $offset[1] = ($size[1] - $source[1]) / 2;
-
-        } else {
-            $source[0] = $size[0];
-            $source[1] = $size[1];
         }
 
     } else {
         // if the image is larger than the given number (width) and no shape is selected, resizes the image keeping the aspect ratio
-        $newSize = [765];
+        $newSize[0] = 765;
+        $source = $size;
         if ($size[0] > $newSize[0]) {
             $newSize[1] = $newSize[0] / ($size[0] / $size[1]);
-
-            $source[0] = $size[0];
-            $source[1] = $size[1];
         } else {
             $newSize = $size;
-            $source = $size;
         }
     }
 
     // create a resized copy of the image
-    $newImage = imagecreatetruecolor($newSize[0], $newSize[1]);
-    imagecopyresampled($newImage, $image, 0, 0, $offset[0], $offset[1], $newSize[0], $newSize[1], $source[0], $source[1]);
+    if (!$newImage = imagecreatetruecolor($newSize[0], $newSize[1])) {
+        return false;
+    }
+    if (!imagecopyresampled($newImage, $image, 0, 0, $offset[0], $offset[1], $newSize[0], $newSize[1], $source[0], $source[1])) {
+        return false;
+    }
 
     return $newImage;
 }
-?>
