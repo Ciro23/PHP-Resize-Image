@@ -50,7 +50,7 @@ function resizeImage($source, $shape = null) {
 
         switch ($shape) {
             case "horizontal":
-                $newSize = [594, 427];
+                $newSize = [430, 242];
                 break;
 
             case "vertical":
