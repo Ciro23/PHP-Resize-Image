@@ -1,9 +1,12 @@
 <?php
 
 /*
-@param string $source image source path
-@param string|null $shape image final shape (square, horizontal, vertical)
-@return the image to create or false on failure
+* returns resized images ready to be created with imagejpeg() or imagepng()
+*
+* @param string $source, image source path
+* @param string|null $shape, image final shape (square, horizontal, vertical)
+*
+* @return the image to create or false on failure
 */
 function resizeImage($source, $shape = null) {
 
